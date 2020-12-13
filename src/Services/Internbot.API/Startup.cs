@@ -3,6 +3,9 @@
 //
 // Generated with EmptyBot .NET Template version v4.11.1
 
+using Internbot.API.Bots;
+using Internbot.API.Dialogs;
+using Internbot.API.Recognizers;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Bot.Builder;
@@ -30,8 +33,19 @@ namespace EmptyBot
             // Create the Bot Framework Adapter with error handling enabled.
             services.AddSingleton<IBotFrameworkHttpAdapter, BotFrameworkHttpAdapter>();
 
-            // Create the bot as a transient. In this case the ASP Controller is expecting an IBot.
-            services.AddTransient<IBot, EmptyBot>();
+            // Register storages
+            services.AddSingleton<IStorage, MemoryStorage>();
+            services.AddSingleton<ConversationState>();
+
+            // Register luis recognizers
+            services.AddSingleton<QuestionRecognizer>();
+
+            // Register dialogs
+            services.AddSingleton<RootDialog>();
+            services.AddSingleton<AskQuestionDialog>();
+
+            // Register bots
+            services.AddTransient<IBot, DialogBot<RootDialog>>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
