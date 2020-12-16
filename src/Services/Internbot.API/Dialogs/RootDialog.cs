@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Bot.Builder;
@@ -11,15 +12,16 @@ namespace Internbot.API.Dialogs
     {
         protected readonly ILogger _logger;
 
-        public RootDialog(AskQuestionDialog askQuestionDialog, ILogger<RootDialog> logger)
+        public RootDialog(AskMultipleQuestionsDialog askMultipleQuestionsDialog, AskQuestionDialog askQuestionDialog, ILogger<RootDialog> logger)
             : base(nameof(RootDialog))
         {
             _logger = logger;
 
-            AddDialog(askQuestionDialog);
+            //AddDialog(askQuestionDialog);
+            AddDialog(askMultipleQuestionsDialog);
             AddDialog(new WaterfallDialog(nameof(WaterfallDialog), new WaterfallStep[]
             {
-                WhoAreYouQuestionsStepAsync,
+                // WhoAreYouQuestionsStepAsync,
                 PersonalityQuestionsStepAsync,
             }));
 
@@ -38,13 +40,19 @@ namespace Internbot.API.Dialogs
 
         private async Task<DialogTurnResult> PersonalityQuestionsStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
         {
-            var question = new QuestionDetails
+            var multipleQuestionsDetails = new MultipleQuestionsDetails();
+            multipleQuestionsDetails.Questions.Push(new QuestionDetails
             {
                 Question = "Wat is jouw rol binnen een team?",
                 KeepAskingResponse = "Kun je dit verder toelichten?"
-            };
+            });
+            multipleQuestionsDetails.Questions.Push(new QuestionDetails
+            {
+                Question = "Wat zijn jouw zwakke punten?",
+                KeepAskingResponse = "Kun je dit verder toelichten?"
+            });
 
-            return await stepContext.BeginDialogAsync(nameof(AskQuestionDialog), question, cancellationToken);
+            return await stepContext.BeginDialogAsync(nameof(AskMultipleQuestionsDialog), multipleQuestionsDetails, cancellationToken);
         }
     }
 }

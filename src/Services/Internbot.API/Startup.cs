@@ -43,6 +43,7 @@ namespace EmptyBot
             // Register dialogs
             services.AddSingleton<RootDialog>();
             services.AddSingleton<AskQuestionDialog>();
+            services.AddSingleton<AskMultipleQuestionsDialog>();
 
             // Register bots
             services.AddTransient<IBot, DialogBot<RootDialog>>();

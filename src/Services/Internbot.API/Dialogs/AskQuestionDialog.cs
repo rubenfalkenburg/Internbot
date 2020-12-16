@@ -1,4 +1,6 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using Internbot.API.Recognizers;
 using Microsoft.Bot.Builder;
@@ -8,6 +10,55 @@ using Microsoft.Extensions.Logging;
 
 namespace Internbot.API.Dialogs
 {
+    public class AskMultipleQuestionsDialog : ComponentDialog
+    {
+        private readonly ILogger _logger;
+
+        public AskMultipleQuestionsDialog(AskQuestionDialog askQuestionDialog, ILogger<AskMultipleQuestionsDialog> logger)
+            : base(nameof(AskMultipleQuestionsDialog))
+        {
+            _logger = logger;
+
+            AddDialog(askQuestionDialog);
+            AddDialog(new WaterfallDialog(nameof(WaterfallDialog), new WaterfallStep[]
+            {
+                AskQuestionStepAsync,
+                NextQuestionStepAsync,
+                EndDialogStepAsync
+            }));
+
+            InitialDialogId = nameof(WaterfallDialog);
+        }
+
+        private async Task<DialogTurnResult> AskQuestionStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            var multipleQuestionsDetails = stepContext.Options as MultipleQuestionsDetails ?? new MultipleQuestionsDetails();
+
+            var question = multipleQuestionsDetails.Questions.Pop();
+
+            return await stepContext.BeginDialogAsync(nameof(AskQuestionDialog), question, cancellationToken);
+        }
+
+        private async Task<DialogTurnResult> NextQuestionStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            var multipleQuestionsDetails = stepContext.Options as MultipleQuestionsDetails ?? new MultipleQuestionsDetails();
+
+            if (multipleQuestionsDetails.Questions.Count() == 0)
+            {
+                return await stepContext.NextAsync(null, cancellationToken);
+            }
+            else
+            {
+                return await stepContext.ReplaceDialogAsync(nameof(AskMultipleQuestionsDialog), multipleQuestionsDetails, cancellationToken);
+            }
+        }
+
+        private async Task<DialogTurnResult> EndDialogStepAsync(WaterfallStepContext stepContext, CancellationToken cancellationToken)
+        {
+            return await stepContext.EndDialogAsync(null, cancellationToken);
+        }
+    }
+
     public class AskQuestionDialog : ComponentDialog
     {
         private readonly QuestionRecognizer _luisRecognizer;
@@ -66,5 +117,10 @@ namespace Internbot.API.Dialogs
     {
         public string Question { get; set; }
         public string KeepAskingResponse { get; set; }
+    }
+
+    public class MultipleQuestionsDetails
+    {
+        public Stack<QuestionDetails> Questions { get; set; } = new Stack<QuestionDetails>();
     }
 }
