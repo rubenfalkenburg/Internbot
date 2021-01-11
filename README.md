@@ -4,8 +4,8 @@ Interbot is a chatbot for studenten who want to prepare their upcoming internshi
 
 __This project is commissioned by Fontys University of Applied Sciences and looks at the techical possibilities to improve education.__
 
-![](img/internbot-preview-chat-01.mp4)
-![](img/internbot-preview-chat-02.mp4)
+![Internbot preview chat with deep questioning ](img/internbot-preview-chat-01.mp4)
+![Internbot preview chat without deep questioning](img/internbot-preview-chat-02.mp4)
 
 ## Prerequisites
 
